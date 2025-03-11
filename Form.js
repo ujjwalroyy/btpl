@@ -358,3 +358,119 @@ const Form = () => {
 }
 
 export default Form
+
+
+            import React, { useState, useEffect } from "react";
+
+const Display = () => {
+  const [userData, setUserData] = useState([]);
+  const [editIndex, setEditIndex] = useState(null);
+  const [editUser, setEditUser] = useState({});
+  
+  useEffect(() => {
+    const storedData = localStorage.getItem("data");
+    if (storedData) {
+      setUserData(JSON.parse(storedData));
+    }
+  }, []);
+
+  // Delete user
+  const handleDelete = (index) => {
+    const updatedData = userData.filter((_, i) => i !== index);
+    setUserData(updatedData);
+    localStorage.setItem("data", JSON.stringify(updatedData));
+  };
+
+  // Update user - Open edit form
+  const handleEdit = (index) => {
+    setEditIndex(index);
+    setEditUser(userData[index]);
+  };
+
+  // Handle input change in edit form
+  const handleChange = (e) => {
+    setEditUser({ ...editUser, [e.target.name]: e.target.value });
+  };
+
+  // Save updated user
+  const handleSave = () => {
+    const updatedData = [...userData];
+    updatedData[editIndex] = editUser;
+    setUserData(updatedData);
+    localStorage.setItem("data", JSON.stringify(updatedData));
+    setEditIndex(null);
+    setEditUser({});
+  };
+
+  // Change Status
+  const handleStatusChange = (index, newStatus) => {
+    const updatedData = [...userData];
+    updatedData[index].status = newStatus;
+    setUserData(updatedData);
+    localStorage.setItem("data", JSON.stringify(updatedData));
+  };
+
+  return (
+    <>
+      <table className="table-container">
+        <thead>
+          <tr>
+            <th>Profile Pic</th>
+            <th>User Name</th>
+            <th>Email</th>
+            <th>Gender</th>
+            <th>Age</th>
+            <th>Stream</th>
+            <th>Subjects</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {userData.length > 0 ? (
+            userData.map((user, index) => (
+              <tr key={index}>
+                <td>{user.file ? <img src={user.file} alt="Profile Pic" width="50" height="50" /> : <p>No Profile Pic</p>}</td>
+                <td>{user.username}</td>
+                <td>{user.email}</td>
+                <td>{user.gender}</td>
+                <td>{user.age}</td>
+                <td>{user.stream}</td>
+                <td>{user.subject ? user.subject : "None"}</td>
+                <td>
+                  <select value={user.status || "Active"} onChange={(e) => handleStatusChange(index, e.target.value)}>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </td>
+                <td>
+                  <button onClick={() => handleEdit(index)}>Update</button>
+                  <button onClick={() => handleDelete(index)}>Delete</button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr><td colSpan="9"><h1>No data available</h1></td></tr>
+          )}
+        </tbody>
+      </table>
+
+      {/* Edit Form */}
+      {editIndex !== null && (
+        <div className="edit-form">
+          <h3>Edit User</h3>
+          <input type="text" name="username" value={editUser.username} onChange={handleChange} placeholder="Username" />
+          <input type="email" name="email" value={editUser.email} onChange={handleChange} placeholder="Email" />
+          <input type="text" name="gender" value={editUser.gender} onChange={handleChange} placeholder="Gender" />
+          <input type="number" name="age" value={editUser.age} onChange={handleChange} placeholder="Age" />
+          <input type="text" name="stream" value={editUser.stream} onChange={handleChange} placeholder="Stream" />
+          <input type="text" name="subject" value={editUser.subject} onChange={handleChange} placeholder="Subjects" />
+          <button onClick={handleSave}>Save</button>
+          <button onClick={() => setEditIndex(null)}>Cancel</button>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Display;

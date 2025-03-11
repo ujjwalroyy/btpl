@@ -1,17 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react'
+import Display from './Display';
+import { useNavigate } from 'react-router-dom';
 
 const Form = () => {
-  const [selectedValue, setSelectedValue] = useState('PCM');
+  const [selectedValue, setSelectedValue] = useState('');
   const [userName, setUserName] = useState('');
   const [age, setAge] = useState('');
   const [email, setEmail] = useState('');
-  const [gender, setGender] = useState("");
+  const [gender, setGender] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [subject, setSubject] = useState(new Map());
   const [file, setFile] = useState(null);
   const [sub, setSub] = useState('');
   const fileInputRef = useRef(null);
+  const genderInputRef = useRef()
+  const navigate = useNavigate()
 
   const data = {
     username: userName,
@@ -58,10 +62,10 @@ const Form = () => {
   };
 
   const checkOption = [
-    { name: 'physics', key: 'physics', label: 'Physics' },
-    { name: 'chemistry', key: 'chemistry', label: 'Chemistry' },
-    { name: 'math', key: 'math', label: 'Math' },
-    { name: 'bio', key: 'bio', label: 'Biology' },
+    { name: 'physics ', key: 'physics', label: 'Physics' },
+    { name: 'chemistry ', key: 'chemistry', label: 'Chemistry' },
+    { name: 'math ', key: 'math', label: 'Math' },
+    { name: 'biology ', key: 'bio', label: 'Biology' },
   ];
 
   const updateMap = (key, value) => {
@@ -79,11 +83,17 @@ const Form = () => {
     ))
   }
 
-  const handleProfilePic = (val) => setFile(val.target.files[0]);
+  const handleProfilePic = (val) => {
+    console.log("Val---------------", val.target.value);
+
+    const file = val.target.value
+    setFile(file)
+
+  }
 
   const handleSubjectChange = (val) => updateMap(val.target.name, val.target.checked);
 
-   const validateUserName = (username) => {
+  const validateUserName = (username) => {
     const validUserName = /^[a-z0-9]+$/i;
     const usernameError = document.getElementById('username-error');
     if (!validUserName.test(username)) {
@@ -103,8 +113,11 @@ const Form = () => {
   };
 
   const handleGenderChange = (val) => {
+    console.log(val, "-");
+
     const genderError = document.getElementById('gender-error');
     if (val === 'select') {
+      setGender(val);
       genderError.style.display = 'block';
       return false;
     }
@@ -165,77 +178,28 @@ const Form = () => {
     }
   }
 
-  const props = { userName, email, gender, age, selectedValue, file, sub, subject }
-  const genderOptions = ['', 'Male', 'Female']
+  const genderOptions = ['Male', 'Female', 'Other']
 
-
-  // const render = {
-  //   userName,
-  //   email,
-  //   gender,
-  //   age,
-  //   selectedValue,
-  //   file,
-  //   subject
-  // }
-  // let cntInd = 0
-  // function displayData() {
-  //   temp.map(function (val, ind) {
-  //     // console.log("Local----", val);
-  //     // let res = Object.assign(data, val)
-  //     // console.log("Temp ---- ", val.stream);
-  //     myData.push({
-  //       id: cntInd++,
-  //       userName: val.username,
-  //       email: val.email,
-  //       gender: val.gender,
-  //       age: val.age,
-  //       selectedValue: val.stream,
-  //       file: val.file,
-  //       subject: val.subject
-  //     })
-  //     myData.map((item) => {
-  //       // console.log("Item content ", item);
-  //     })
-  //     // console.log("My Data -------- Data ---------", myData[0].email)
-  //     // console.log("render----", render.email);
-  //     // console.log("render----", render.userName);
-  //     // console.log("render----", render.age);
-  //     // console.log("render----", render.gender);
-  //     // console.log("render----", render.selectedValue);
-  //     // console.log("render----", render.file);
-  //     // console.log("render----", render.subject);
-
-  //     // for(let key in res){
-  //     //   console.log("Key---------", res[key]);
-
-  //     //   if(res.hasOwnProperty(key)){
-  //     //     console.log("res--------------", res[key]);
-
-  //     //   }
-  //     // }
-  //   }
-  //   )
-  //   // let res = Object.assign(data, temp)
-  //   // console.log("Temp ---- ", res);
-  // }
 
   const handleClear = () => {
     setUserName('');
-    setGender("");
+    // setGender('');
+    if(genderInputRef.current){
+      genderInputRef.current.value = ""
+    }
     setAge('');
     setEmail('');
     setPassword('');
     setConfirmPassword('');
     setSubject(new Map());
     setFile(null)
-    setSelectedValue('PCM');
+    setSelectedValue('');
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  
+
   const storeData = (e) => {
     e.preventDefault();
     if (
@@ -252,6 +216,7 @@ const Form = () => {
       user.push(data);
       localStorage.setItem('data', JSON.stringify(user));
       handleClear();
+      navigate("/display")
       console.log("Submited", validateUserName(userName));
       console.log("Submited", validateEmail(email));
       console.log("Submited", validateAge(age));
@@ -295,25 +260,26 @@ const Form = () => {
 
   return (
     <>
-      <form className='form-controller' name='user-form'>
+      <form className='form-controller' onSubmit={storeData}>
         <div>Username:
-          <input type='text' value={userName} onChange={handleNameChange} onInput={validateUserName} placeholder='Enter Username' minLength={6} maxLength={20} required />
+          <input type='text' value={userName} onChange={handleNameChange} onInput={validateUserName} placeholder='Enter Username' minLength={6} maxLength={20} />
           <span id='username-error' style={{ display: "none" }}>Enter valid username</span>
         </div><br />
         <div>Select Gender:
-          <select value="" onChange={(e) => handleGenderChange(e.target.value)} required>
+          <select ref={genderInputRef} onChange={(e) => handleGenderChange(e.target.value)}>
+            <option value={""} >select</option>
             {genderOptions.map((val, ind) => (
-              <option key={ind}>{val || "select"}</option>
+              <option key={ind}>{val}</option>
             ))}
           </select>
           <span id='gender-error' style={{ display: "none" }}>Select your gender</span>
         </div><br />
         <div>Age:
-          <input type='text' value={age} onChange={handleAgeChange} onInput={validateAge} required />
+          <input type='text' value={age} onChange={handleAgeChange} onInput={validateAge} />
           <span id='age-error' style={{ display: "none" }}>Age must be greater than 16</span>
         </div><br />
         <div>Email:
-          <input type='email' value={email} onChange={handleEmailChange} onInput={validateEmail && validateLocalEmail} required />
+          <input type='text' value={email} onChange={handleEmailChange} onInput={validateEmail && validateLocalEmail} />
           <span id='email-error' style={{ display: "none" }}>Enter valid Email</span>
           <span id='duplicate-error' style={{ display: "none" }}>Email already exist</span>
         </div><br />
@@ -331,146 +297,31 @@ const Form = () => {
         <div>Subject: {subject.get('physics')}
           {checkOption.map(it => (
             <label key={it.key}>
-              {it.name}
-              <input type='checkbox' name={it.name} checked={subject.get(it.name)} onChange={handleSubjectChange} />
+              {it.label}
+              <input type='checkbox' name={it.name} checked={subject.get(it.name) ? true : false} onChange={handleSubjectChange} />
               <span id='subject-error' style={{ display: "none" }}>Enter valid password</span>
             </label>
           ))}
         </div>
         <div>Password:
-          <input type='password' value={password} onChange={handlePasswordChange} onInput={validatePassword} required />
+          <input type='text' value={password} onChange={handlePasswordChange} onInput={validatePassword} />
           <span id='password-error' style={{ display: "none" }}>Enter valid password</span>
         </div>
         <div>Confirm Password:
-          <input type='password' value={confirmPassword} onChange={handleConfirmPasswordChange} onInput={comparePassword} required />
+          <input type='text' value={confirmPassword} onChange={handleConfirmPasswordChange} onInput={comparePassword} />
           <span id='cPassword-error' style={{ display: "none" }}>password and confirm password not matched</span>
         </div>
         <div>Profile Photo:
-          <input type='file' ref={fileInputRef} onChange={handleProfilePic} required />
+          <input type='file' ref={fileInputRef} onChange={handleProfilePic} />
         </div>
+        <button>Submit</button>
       </form>
       <div>
-        <button onClick={(e) => storeData(e)}>Submit</button>
+        {/* <button>Submit</button> */}
+        {/* <button onClick={handleClear}>Clear</button> */}
       </div>
-
     </>
   )
 }
 
 export default Form
-
-
-            import React, { useState, useEffect } from "react";
-
-const Display = () => {
-  const [userData, setUserData] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
-  const [editUser, setEditUser] = useState({});
-  
-  useEffect(() => {
-    const storedData = localStorage.getItem("data");
-    if (storedData) {
-      setUserData(JSON.parse(storedData));
-    }
-  }, []);
-
-  // Delete user
-  const handleDelete = (index) => {
-    const updatedData = userData.filter((_, i) => i !== index);
-    setUserData(updatedData);
-    localStorage.setItem("data", JSON.stringify(updatedData));
-  };
-
-  // Update user - Open edit form
-  const handleEdit = (index) => {
-    setEditIndex(index);
-    setEditUser(userData[index]);
-  };
-
-  // Handle input change in edit form
-  const handleChange = (e) => {
-    setEditUser({ ...editUser, [e.target.name]: e.target.value });
-  };
-
-  // Save updated user
-  const handleSave = () => {
-    const updatedData = [...userData];
-    updatedData[editIndex] = editUser;
-    setUserData(updatedData);
-    localStorage.setItem("data", JSON.stringify(updatedData));
-    setEditIndex(null);
-    setEditUser({});
-  };
-
-  // Change Status
-  const handleStatusChange = (index, newStatus) => {
-    const updatedData = [...userData];
-    updatedData[index].status = newStatus;
-    setUserData(updatedData);
-    localStorage.setItem("data", JSON.stringify(updatedData));
-  };
-
-  return (
-    <>
-      <table className="table-container">
-        <thead>
-          <tr>
-            <th>Profile Pic</th>
-            <th>User Name</th>
-            <th>Email</th>
-            <th>Gender</th>
-            <th>Age</th>
-            <th>Stream</th>
-            <th>Subjects</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {userData.length > 0 ? (
-            userData.map((user, index) => (
-              <tr key={index}>
-                <td>{user.file ? <img src={user.file} alt="Profile Pic" width="50" height="50" /> : <p>No Profile Pic</p>}</td>
-                <td>{user.username}</td>
-                <td>{user.email}</td>
-                <td>{user.gender}</td>
-                <td>{user.age}</td>
-                <td>{user.stream}</td>
-                <td>{user.subject ? user.subject : "None"}</td>
-                <td>
-                  <select value={user.status || "Active"} onChange={(e) => handleStatusChange(index, e.target.value)}>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </td>
-                <td>
-                  <button onClick={() => handleEdit(index)}>Update</button>
-                  <button onClick={() => handleDelete(index)}>Delete</button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr><td colSpan="9"><h1>No data available</h1></td></tr>
-          )}
-        </tbody>
-      </table>
-
-      {/* Edit Form */}
-      {editIndex !== null && (
-        <div className="edit-form">
-          <h3>Edit User</h3>
-          <input type="text" name="username" value={editUser.username} onChange={handleChange} placeholder="Username" />
-          <input type="email" name="email" value={editUser.email} onChange={handleChange} placeholder="Email" />
-          <input type="text" name="gender" value={editUser.gender} onChange={handleChange} placeholder="Gender" />
-          <input type="number" name="age" value={editUser.age} onChange={handleChange} placeholder="Age" />
-          <input type="text" name="stream" value={editUser.stream} onChange={handleChange} placeholder="Stream" />
-          <input type="text" name="subject" value={editUser.subject} onChange={handleChange} placeholder="Subjects" />
-          <button onClick={handleSave}>Save</button>
-          <button onClick={() => setEditIndex(null)}>Cancel</button>
-        </div>
-      )}
-    </>
-  );
-};
-
-export default Display;

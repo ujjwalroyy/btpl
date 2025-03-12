@@ -325,3 +325,22 @@ const Form = () => {
 }
 
 export default Form
+
+
+
+  const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
+
+  if (type === "checkbox") {
+    setEditData((prevData) => {
+      const updatedSubjects = checked
+        ? [...(prevData.subject || []), value]
+        : (prevData.subject || []).filter((sub) => sub !== value);
+
+      return { ...prevData, subject: updatedSubjects };
+    });
+  } else {
+    setEditData((prevData) => ({ ...prevData, [name]: value }));
+  }
+};
+  
